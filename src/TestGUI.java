@@ -1,44 +1,67 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
-public class TestGUI implements ActionListener {
-    int clicks = 0;
+public class TestGUI {
+    int count = 0;
     JFrame frame;
-    JPanel panel;
+    JPanel mainPanel;
+    JPanel imagePanel;
+    JPanel bottomPanel;
     JButton button;
+    JButton button2;
     JLabel label;
+    JLabel imageLabel;
 
-    public TestGUI() {
+    public TestGUI() throws IOException {
         frame = new JFrame();
-        panel = new JPanel();
-        button = new JButton("Test Button");
-        label = new JLabel("Number of clicks: " + clicks);
+        mainPanel = new JPanel();
+        imagePanel = new JPanel();
+        bottomPanel = new JPanel();
+        button = new JButton(new AbstractAction("Increase Count") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                count++;
+                label.setText("Count: " + count);
+            }
+        });
+        button2 = new JButton(new AbstractAction("Decrease Count") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                count--;
+                label.setText("Count: " + count);
+            }
+        });
+        label = new JLabel("Count: " + count);
 
-        button.addActionListener(this);
+        BufferedImage image = ImageIO.read(new File("C:\\Users\\General\\Desktop\\Google Drive\\Hobby\\Rocks\\Photography\\Other\\test\\Canon-EOS-90D.JPG"));
 
-        panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 10, 30));
-        panel.setLayout(new GridLayout(0, 1));
-        panel.add(button);
-        panel.add(label);
+        Image resizedImage = image.getScaledInstance(696*2,464*2, Image.SCALE_SMOOTH);
+        imageLabel = new JLabel(new ImageIcon(resizedImage));
+        imagePanel.setLayout(new BorderLayout());
+        imagePanel.add(imageLabel, BorderLayout.CENTER);
 
-        frame.add(panel, BorderLayout.CENTER);
+        bottomPanel.add(button);
+        bottomPanel.add(button2);
+        bottomPanel.add(label);
+
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        mainPanel.setLayout(new BorderLayout());
+        mainPanel.add(imagePanel, BorderLayout.CENTER);
+        mainPanel.add(bottomPanel, BorderLayout.PAGE_END);
+
+        frame.add(mainPanel, BorderLayout.CENTER);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setTitle("Test GUI");
         frame.pack();
         frame.setVisible(true);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        clicks++;
-        label.setText("Number of clicks: " + clicks);
-    }
-
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         new TestGUI();
     }
 }
-
-//Based on example from https://www.youtube.com/watch?v=5o3fMLPY7qY
