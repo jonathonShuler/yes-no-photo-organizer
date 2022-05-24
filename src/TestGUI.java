@@ -12,41 +12,81 @@ public class TestGUI {
     JPanel mainPanel;
     JPanel imagePanel;
     JPanel bottomPanel;
-    JButton button;
-    JButton button2;
+    JButton nextButton;
+    JButton previousButton;
+    JButton directoryButton;
     JLabel label;
     JLabel imageLabel;
+    File directory;
+    String[] fileList;
 
-    public TestGUI() throws IOException {
+    public TestGUI() {
         frame = new JFrame();
         mainPanel = new JPanel();
         imagePanel = new JPanel();
         bottomPanel = new JPanel();
-        button = new JButton(new AbstractAction("Increase Count") {
+        label = new JLabel("Image: " + count);
+        nextButton = new JButton(new AbstractAction("Next") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                count++;
-                label.setText("Count: " + count);
+                if(count < fileList.length-1) {
+                    count++;
+                    label.setText("Image: " + count);
+                    try {
+                        showImage();
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
             }
         });
-        button2 = new JButton(new AbstractAction("Decrease Count") {
+        previousButton = new JButton(new AbstractAction("Previous") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                count--;
-                label.setText("Count: " + count);
+                if(count > 0) {
+                    count++;
+                    label.setText("Image: " + count);
+                    try {
+                        showImage();
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
             }
         });
-        label = new JLabel("Count: " + count);
+        directoryButton = new JButton(new AbstractAction("Choose Directory") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                fileChooser.setCurrentDirectory(new File(System.getProperty("user.home") + System.getProperty("file.separator") + "Desktop"));
+                int chooserOption = fileChooser.showOpenDialog(frame);
+                if(chooserOption == JFileChooser.APPROVE_OPTION) {
+                    directory = fileChooser.getSelectedFile();
+                    System.out.println(directory.getPath());
+                    fileList = directory.list();
+                    for (String file : fileList) {
+                        System.out.println(file);
+                    }
+                    try {
+                        showImage();
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                } else {
+                    System.out.println("No directory selected");
+                }
+            }
+        });
 
-        BufferedImage image = ImageIO.read(new File("C:\\Users\\General\\Desktop\\Google Drive\\Hobby\\Rocks\\Photography\\Other\\test\\Canon-EOS-90D.JPG"));
-
-        Image resizedImage = image.getScaledInstance(696*2,464*2, Image.SCALE_SMOOTH);
-        imageLabel = new JLabel(new ImageIcon(resizedImage));
+        imageLabel = new JLabel();
         imagePanel.setLayout(new BorderLayout());
         imagePanel.add(imageLabel, BorderLayout.CENTER);
+        imageLabel.setVisible(false);
+        imagePanel.add(directoryButton, BorderLayout.PAGE_END);
 
-        bottomPanel.add(button);
-        bottomPanel.add(button2);
+        bottomPanel.add(previousButton);
+        bottomPanel.add(nextButton);
         bottomPanel.add(label);
 
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -56,9 +96,32 @@ public class TestGUI {
 
         frame.add(mainPanel, BorderLayout.CENTER);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setTitle("Test GUI");
+        frame.setTitle("Image Viewer");
         frame.pack();
         frame.setVisible(true);
+    }
+
+    private void showImage() throws IOException {
+        if(fileList.length != 0) {
+            BufferedImage image = ImageIO.read(new File(directory.getPath() + "\\" +  fileList[count]));
+            Image resizedImage = image.getScaledInstance(696*2,464*2, Image.SCALE_SMOOTH);
+            imageLabel.setIcon(new ImageIcon(resizedImage));
+            if(directoryButton.isVisible()) {
+                directoryButton.setVisible(false);;
+            }
+
+        } else {
+            imageLabel.setText("There are no images in this directory.");
+            if(!directoryButton.isVisible()) {
+                directoryButton.setVisible(true);;
+            }
+        }
+
+        if(!imageLabel.isVisible()) {
+            imageLabel.setVisible(true);
+        }
+
+        frame.pack();
     }
 
     public static void main(String[] args) throws IOException {
