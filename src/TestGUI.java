@@ -5,6 +5,11 @@ import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class TestGUI {
     int count = 0;
@@ -12,6 +17,8 @@ public class TestGUI {
     JPanel mainPanel;
     JPanel imagePanel;
     JPanel bottomPanel;
+    JButton keepButton;
+    JButton discardButton;
     JButton nextButton;
     JButton previousButton;
     JButton directoryButton;
@@ -19,6 +26,7 @@ public class TestGUI {
     JLabel imageLabel;
     File directory;
     String[] fileList;
+    ArrayList<String> fileArrayList;
 
     public TestGUI() {
         frame = new JFrame();
@@ -26,34 +34,99 @@ public class TestGUI {
         imagePanel = new JPanel();
         bottomPanel = new JPanel();
         label = new JLabel("Image: " + count);
-        nextButton = new JButton(new AbstractAction("Next") {
+
+        keepButton = new JButton(new AbstractAction("Keep Image") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(count < fileList.length-1) {
-                    count++;
-                    label.setText("Image: " + count);
+                if(!Files.exists(Paths.get(directory.getPath() + "\\Keep\\"))) {
+                    new File(directory.getPath() + "\\Keep\\").mkdir();
+                }
+                try {
+                    Path keep = Files.move(Paths.get(directory.getPath() + "\\" +  fileArrayList.get(count)), Paths.get(directory.getPath() + "\\Keep\\" +  fileArrayList.get(count)));
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+                fileArrayList.remove(count);
+                if(count < fileArrayList.size()-1) {
                     try {
                         showImage();
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
                     }
+                    label.setText("Image: " + count);
+                } else {
+                    count--;
+                    try {
+                        showImage();
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    label.setText("Image: " + count);
                 }
             }
         });
-        previousButton = new JButton(new AbstractAction("Previous") {
+
+        discardButton = new JButton(new AbstractAction("Discard Image") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(!Files.exists(Paths.get(directory.getPath() + "\\Discard\\"))) {
+                    new File(directory.getPath() + "\\Discard\\").mkdir();
+                }
+                try {
+                    Path keep = Files.move(Paths.get(directory.getPath() + "\\" +  fileArrayList.get(count)), Paths.get(directory.getPath() + "\\Discard\\" +  fileArrayList.get(count)));
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+                fileArrayList.remove(count);
+                if(count < fileArrayList.size()-1) {
+                    try {
+                        showImage();
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    label.setText("Image: " + count);
+                } else {
+                    count--;
+                    try {
+                        showImage();
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    label.setText("Image: " + count);
+                }
+            }
+        });
+
+        nextButton = new JButton(new AbstractAction(">") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(count < fileArrayList.size()-1) {
+                    count++;
+                    try {
+                        showImage();
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    label.setText("Image: " + count);
+                }
+            }
+        });
+
+        previousButton = new JButton(new AbstractAction("<") {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(count > 0) {
-                    count++;
-                    label.setText("Image: " + count);
+                    count--;
                     try {
                         showImage();
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
                     }
+                    label.setText("Image: " + count);
                 }
             }
         });
+
         directoryButton = new JButton(new AbstractAction("Choose Directory") {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -65,7 +138,9 @@ public class TestGUI {
                     directory = fileChooser.getSelectedFile();
                     System.out.println(directory.getPath());
                     fileList = directory.list();
-                    for (String file : fileList) {
+                    fileArrayList= new ArrayList<String>();
+                    Collections.addAll(fileArrayList, fileList);
+                    for (String file : fileArrayList) {
                         System.out.println(file);
                     }
                     try {
@@ -86,6 +161,8 @@ public class TestGUI {
         imagePanel.add(directoryButton, BorderLayout.PAGE_END);
 
         bottomPanel.add(previousButton);
+        bottomPanel.add(discardButton);
+        bottomPanel.add(keepButton);
         bottomPanel.add(nextButton);
         bottomPanel.add(label);
 
@@ -102,8 +179,8 @@ public class TestGUI {
     }
 
     private void showImage() throws IOException {
-        if(fileList.length != 0) {
-            BufferedImage image = ImageIO.read(new File(directory.getPath() + "\\" +  fileList[count]));
+        if(fileArrayList.size() != 0) {
+            BufferedImage image = ImageIO.read(new File(directory.getPath() + "\\" +  fileArrayList.get(count)));
             Image resizedImage = image.getScaledInstance(696*2,464*2, Image.SCALE_SMOOTH);
             imageLabel.setIcon(new ImageIcon(resizedImage));
             if(directoryButton.isVisible()) {
