@@ -178,15 +178,31 @@ public class TestGUI {
         frame.setVisible(true);
     }
 
+    private BufferedImage validateFile(File file) throws IOException {
+        if(file.isFile()){
+            return ImageIO.read(file);
+        } else {
+            return null;
+        }
+    }
+
     private void showImage() throws IOException {
         if(fileArrayList.size() != 0) {
-            BufferedImage image = ImageIO.read(new File(directory.getPath() + "\\" +  fileArrayList.get(count)));
-            Image resizedImage = image.getScaledInstance(696*2,464*2, Image.SCALE_SMOOTH);
-            imageLabel.setIcon(new ImageIcon(resizedImage));
-            if(directoryButton.isVisible()) {
-                directoryButton.setVisible(false);;
+            File file = new File(directory.getPath() + "\\" +  fileArrayList.get(count));
+            BufferedImage image = validateFile(file);
+            if(image != null) {
+                Image resizedImage = image.getScaledInstance(696*2,464*2, Image.SCALE_SMOOTH);
+                imageLabel.setIcon(new ImageIcon(resizedImage));
+                if(directoryButton.isVisible()) {
+                    directoryButton.setVisible(false);;
+                }
+            } else {
+                fileArrayList.remove(count);
+                if(count == fileArrayList.size()) {
+                    count--;
+                }
+                showImage();
             }
-
         } else {
             imageLabel.setText("There are no images in this directory.");
             if(!directoryButton.isVisible()) {

@@ -1,7 +1,6 @@
 
 Items to be done:
 
-- Handle non-image files and directories
 - Improve image sizing
 - Restructure code into additional classes
 - Reduce code duplication
