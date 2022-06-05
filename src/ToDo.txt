@@ -1,6 +1,9 @@
 
 Items to be done:
-
-- Improve image sizing
 - Restructure code into additional classes
 - Reduce code duplication
+
+
+Bugs:
+- Select empty directory, then click app buttons.
+- Select empty directory first, then try to select a directory with images.

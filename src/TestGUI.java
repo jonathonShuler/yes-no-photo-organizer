@@ -13,10 +13,15 @@ import java.util.Collections;
 
 public class TestGUI {
     int count = 0;
+    File directory;
+    ArrayList<String> fileArrayList;
+    String[] fileList;
+    GraphicsDevice graphicsDevice;
     JFrame frame;
     JPanel mainPanel;
     JPanel imagePanel;
     JPanel bottomPanel;
+    JPanel testPanel;
     JButton keepButton;
     JButton discardButton;
     JButton nextButton;
@@ -24,16 +29,16 @@ public class TestGUI {
     JButton directoryButton;
     JLabel label;
     JLabel imageLabel;
-    File directory;
-    String[] fileList;
-    ArrayList<String> fileArrayList;
+
 
     public TestGUI() {
         frame = new JFrame();
         mainPanel = new JPanel();
         imagePanel = new JPanel();
         bottomPanel = new JPanel();
+        testPanel = new JPanel();
         label = new JLabel("Image: " + count);
+        graphicsDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 
         keepButton = new JButton(new AbstractAction("Keep Image") {
             @Override
@@ -127,7 +132,7 @@ public class TestGUI {
             }
         });
 
-        directoryButton = new JButton(new AbstractAction("Choose Directory") {
+        directoryButton = new JButton(new AbstractAction("Choose Image Directory") {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFileChooser fileChooser = new JFileChooser();
@@ -155,10 +160,11 @@ public class TestGUI {
         });
 
         imageLabel = new JLabel();
+        imageLabel.setHorizontalAlignment(JLabel.CENTER);
+        imageLabel.setVerticalAlignment(JLabel.CENTER);
+        imageLabel.setVisible(false);
         imagePanel.setLayout(new BorderLayout());
         imagePanel.add(imageLabel, BorderLayout.CENTER);
-        imageLabel.setVisible(false);
-        imagePanel.add(directoryButton, BorderLayout.PAGE_END);
 
         bottomPanel.add(previousButton);
         bottomPanel.add(discardButton);
@@ -166,15 +172,20 @@ public class TestGUI {
         bottomPanel.add(nextButton);
         bottomPanel.add(label);
 
+        testPanel.setLayout(new BoxLayout(testPanel, BoxLayout.Y_AXIS));
+        directoryButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        testPanel.add(directoryButton);
+        testPanel.add(bottomPanel);
+
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         mainPanel.setLayout(new BorderLayout());
         mainPanel.add(imagePanel, BorderLayout.CENTER);
-        mainPanel.add(bottomPanel, BorderLayout.PAGE_END);
+        mainPanel.add(testPanel, BorderLayout.PAGE_END);
 
         frame.add(mainPanel, BorderLayout.CENTER);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setTitle("Image Viewer");
-        frame.pack();
+        frame.setSize(getDimension());
         frame.setVisible(true);
     }
 
@@ -186,12 +197,30 @@ public class TestGUI {
         }
     }
 
+    public Dimension getDimension() {
+        int screenWidth = graphicsDevice.getDisplayMode().getWidth();
+        int screenHeight = graphicsDevice.getDisplayMode().getHeight();
+        int applicationWidth = (int) Math.round(screenWidth*0.45);
+        int applicationHeight = (int) Math.round(screenHeight*0.55);
+        Dimension dimension = new Dimension(applicationWidth, applicationHeight);
+        return dimension;
+    }
+
     private void showImage() throws IOException {
         if(fileArrayList.size() != 0) {
             File file = new File(directory.getPath() + "\\" +  fileArrayList.get(count));
             BufferedImage image = validateFile(file);
             if(image != null) {
-                Image resizedImage = image.getScaledInstance(696*2,464*2, Image.SCALE_SMOOTH);
+                int imageHeight = image.getHeight();
+                int imageWidth = image.getWidth();
+                Image resizedImage;
+                if(imageHeight >= imageWidth) {
+                    int height = (int) Math.round(frame.getHeight()*0.9);
+                    resizedImage = image.getScaledInstance(-1, height, Image.SCALE_SMOOTH);
+                } else {
+                    int width = (int) Math.round(frame.getWidth()*0.9);
+                    resizedImage = image.getScaledInstance(width,-1, Image.SCALE_SMOOTH);
+                }
                 imageLabel.setIcon(new ImageIcon(resizedImage));
                 if(directoryButton.isVisible()) {
                     directoryButton.setVisible(false);;
@@ -204,7 +233,7 @@ public class TestGUI {
                 showImage();
             }
         } else {
-            imageLabel.setText("There are no images in this directory.");
+            imageLabel.setText("There are no images in this directory. Choose a different directory.");
             if(!directoryButton.isVisible()) {
                 directoryButton.setVisible(true);;
             }
@@ -213,8 +242,6 @@ public class TestGUI {
         if(!imageLabel.isVisible()) {
             imageLabel.setVisible(true);
         }
-
-        frame.pack();
     }
 
     public static void main(String[] args) throws IOException {
