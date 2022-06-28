@@ -8,14 +8,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
 
 public class TestGUI {
+    private static TestGUI testGUI = new TestGUI();
     int count = 0;
     File directory;
-    ArrayList<String> fileArrayList;
-    String[] fileList;
+//    ArrayList<String> fileArrayList;
+    String[] directoryItems;
     GraphicsDevice graphicsDevice;
     JFrame frame;
     JPanel mainPanel;
@@ -47,12 +46,12 @@ public class TestGUI {
                     new File(directory.getPath() + "\\Keep\\").mkdir();
                 }
                 try {
-                    Path keep = Files.move(Paths.get(directory.getPath() + "\\" +  fileArrayList.get(count)), Paths.get(directory.getPath() + "\\Keep\\" +  fileArrayList.get(count)));
+                    Path keep = Files.move(Paths.get(directory.getPath() + "\\" +  AppData.getFileFromList(count)), Paths.get(directory.getPath() + "\\Keep\\" +  AppData.getFileFromList(count)));
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
-                fileArrayList.remove(count);
-                if(count < fileArrayList.size()-1) {
+                AppData.removeFileFromList(count);
+                if(count < AppData.getFileListSize()-1) {
                     try {
                         showImage();
                     } catch (IOException ex) {
@@ -78,12 +77,12 @@ public class TestGUI {
                     new File(directory.getPath() + "\\Discard\\").mkdir();
                 }
                 try {
-                    Path keep = Files.move(Paths.get(directory.getPath() + "\\" +  fileArrayList.get(count)), Paths.get(directory.getPath() + "\\Discard\\" +  fileArrayList.get(count)));
+                    Path keep = Files.move(Paths.get(directory.getPath() + "\\" +  AppData.getFileFromList(count)), Paths.get(directory.getPath() + "\\Discard\\" +  AppData.getFileFromList(count)));
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
-                fileArrayList.remove(count);
-                if(count < fileArrayList.size()-1) {
+                AppData.removeFileFromList(count);
+                if(count < AppData.getFileListSize()-1) {
                     try {
                         showImage();
                     } catch (IOException ex) {
@@ -105,7 +104,7 @@ public class TestGUI {
         nextButton = new JButton(new AbstractAction(">") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(count < fileArrayList.size()-1) {
+                if(count < AppData.getFileListSize()-1) {
                     count++;
                     try {
                         showImage();
@@ -142,12 +141,8 @@ public class TestGUI {
                 if(chooserOption == JFileChooser.APPROVE_OPTION) {
                     directory = fileChooser.getSelectedFile();
                     System.out.println(directory.getPath());
-                    fileList = directory.list();
-                    fileArrayList= new ArrayList<String>();
-                    Collections.addAll(fileArrayList, fileList);
-                    for (String file : fileArrayList) {
-                        System.out.println(file);
-                    }
+                    directoryItems = directory.list();
+                    AppData.setFileList(directoryItems);
                     try {
                         showImage();
                     } catch (IOException ex) {
@@ -189,6 +184,10 @@ public class TestGUI {
         frame.setVisible(true);
     }
 
+    public static TestGUI getInstance() {
+        return testGUI;
+    }
+
     private BufferedImage validateFile(File file) throws IOException {
         if(file.isFile()){
             return ImageIO.read(file);
@@ -197,18 +196,17 @@ public class TestGUI {
         }
     }
 
-    public Dimension getDimension() {
+    private Dimension getDimension() {
         int screenWidth = graphicsDevice.getDisplayMode().getWidth();
         int screenHeight = graphicsDevice.getDisplayMode().getHeight();
         int applicationWidth = (int) Math.round(screenWidth*0.45);
         int applicationHeight = (int) Math.round(screenHeight*0.55);
-        Dimension dimension = new Dimension(applicationWidth, applicationHeight);
-        return dimension;
+        return new Dimension(applicationWidth, applicationHeight);
     }
 
-    private void showImage() throws IOException {
-        if(fileArrayList.size() != 0) {
-            File file = new File(directory.getPath() + "\\" +  fileArrayList.get(count));
+    public void showImage() throws IOException {
+        if(AppData.getFileListSize() != 0) {
+            File file = new File(directory.getPath() + "\\" +  AppData.getFileFromList(count));
             BufferedImage image = validateFile(file);
             if(image != null) {
                 int imageHeight = image.getHeight();
@@ -226,8 +224,8 @@ public class TestGUI {
                     directoryButton.setVisible(false);;
                 }
             } else {
-                fileArrayList.remove(count);
-                if(count == fileArrayList.size()) {
+                AppData.removeFileFromList(count);
+                if(count == AppData.getFileListSize()) {
                     count--;
                 }
                 showImage();
@@ -244,7 +242,5 @@ public class TestGUI {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        new TestGUI();
-    }
+
 }

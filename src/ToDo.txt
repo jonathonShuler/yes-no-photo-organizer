@@ -7,3 +7,18 @@ Items to be done:
 Bugs:
 - Select empty directory, then click app buttons.
 - Select empty directory first, then try to select a directory with images.
+
+
+
+
+Notes from CP:
+
+SOLID
+
+class - directory of photos
+will have array that contains photo objects
+1 - needs path to directory
+2 - list (linked list?) of photo
+	-the image file
+	-name of the file
+	-boolean - keep or not
